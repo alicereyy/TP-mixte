@@ -55,7 +55,7 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
                 # If the date does not exist, add the whole booking
                 booking['dates'].append({
                     'date': request.dates[0].date,
-                    'movies': request.existing_movies
+                    'movies': request.dates[0].movies
                 })
                 return booking_pb2.ResponseMessage(message="Booking added for this user.")
         return booking_pb2.ResponseMessage(message="Booking already exists for this user")
@@ -102,9 +102,11 @@ def run():
                 )
             ]
         )
+       
         print("Booking Request: ", booking_request)
         # Apply the AddBookingForUser method 
         response = booking_stub.AddBookingForUser(booking_request)
+        print("-------------- AddBookingForUser --------------")
         print("Response: ", response.message)
         
 if __name__ == '__main__':
@@ -123,7 +125,7 @@ if __name__ == '__main__':
 if __name__ == '__main__':
     server_thread = threading.Thread(target=serve)
     server_thread.start()
-
+    serve()
     run()
 ''' 
     
