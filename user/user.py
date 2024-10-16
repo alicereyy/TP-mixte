@@ -40,18 +40,23 @@ def get_booking_for_userid(userid):
          with grpc.insecure_channel('localhost:3004') as channel:
             stub = booking_pb2_grpc.BookingStub(channel)
             request = booking_pb2.UserId(id=userid)
-            try:
-               response = stub.GetBookingsForUser(request)
-               user_bookings = []
+            response = stub.GetBookingsForUser(request)
+            user_bookings = []
+            try : 
                for booking in response:
                   for date_movie in booking.dates:
                      user_bookings.append({
                            'date': date_movie.date,
                            'movies': list(date_movie.movies)
                      })
-               return make_response(jsonify(user_bookings), 200)
+               if user_bookings != [] : 
+                  res=make_response(jsonify(user_bookings), 200)
+                  return res 
+               else :
+                  return make_response(jsonify({"error": "This user does not have any bookings"}), 404)
             except grpc.RpcError as e:
-               return make_response(jsonify({"error": "This user does not have any bookings"}), 404)
+               return make_response(jsonify({"error": "Call to booking server failed"}), 508)
+            
    return(make_response(jsonify({"error": "This user does not exist in the users database"}), 400))
 
 # Returns the booked movies of a user on the chosen date 
@@ -63,62 +68,88 @@ def get_booking_by_date_user(userid, date):
             stub = booking_pb2_grpc.BookingStub(channel)
             request = booking_pb2.UserId(id=userid)
             try:
-                  response = stub.GetBookingsForUser(request)
-                  for booking in response:
-                     for date_movie in booking.dates:
-                        if str(date_movie.date) == str(date):
-                           return make_response(jsonify({
-                              'date': date_movie.date,
-                              'movies': list(date_movie.movies)
-                        }), 200)
-                  return make_response(jsonify({"error": "There are no bookings on this date for this user"}), 409)
+               response = stub.GetBookingsForUser(request)
+               for booking in response:
+                  for date_movie in booking.dates:
+                     if str(date_movie.date) == str(date):
+                        return make_response(jsonify({
+                           'date': date_movie.date,
+                           'movies': list(date_movie.movies)
+                     }), 200)
+               return make_response(jsonify({"error": "There are no bookings on this date for this user"}), 409)
             except grpc.RpcError as e:
-                  return make_response(jsonify({"error": "This user does not have any bookings"}), 404)
+                  return make_response(jsonify({"error": "Call to booking server failed"}), 508)
    return make_response(jsonify({"error": "This user does not exist in the users database"}), 400)
 
 def getMovieInfo(movieid) :
-   variables = {"id": movieid}
+   #variables = {"id": movieid}
+    
+   query = '''
+    {
+      movie_with_id(_id: "{movieid}") {
+        id
+        title
+        director
+        rating
+        actors {
+          id
+          firstname
+          lastname
+          birthyear
+        }
+      }
+    }
+    '''.replace("{movieid}", movieid)
     
    response = requests.post(
-      'http://127.0.0.1:3200/graphql',
-      json={'query': '{ movie_with_id(_id: "_id") { id title director rating actors { id firstname lastname birthyear } } }'.replace("_id", movieid)}
+      'http://127.0.0.1:3001/graphql',
+      json={'query': query}  # Send the query
    )
-    
+   
+   #print(f'HHHHHH {response}')  # just for debugging
+   
    if response.status_code == 200:
       return response.json()['data']['movie_with_id']
    else:
       return None
 
-
 @app.route("/users/movie_info/<userid>", methods=['GET'])
 def get_movies_info_for_user_bookings(userid):
-    
-   user_bookings = get_booking_for_userid(userid)
-    
-   if not user_bookings:
-      return make_response(jsonify({"error": "This user does not have any bookings"}), 404)
+   
+   with grpc.insecure_channel('localhost:3004') as channel:
+      stub = booking_pb2_grpc.BookingStub(channel)
+      request = booking_pb2.UserId(id=userid)
+   
+   #if not user_bookings[0]:
+   #   return make_response(jsonify({"error": "This user does not have any bookings"}), 404)
+      try:
+         user_bookings= stub.GetBookingsForUser(request)
+         movies_infos = []
+      
+         for user_booking in user_bookings:
+            for date_movie in user_booking.dates:
+               booking_info = {
+                     'date': date_movie.date,  
+                     'movies': []
+               }
+               movies_ids = date_movie.movies
 
-   movies_infos = []
-    
-   for user_booking in user_bookings:
-      for date_movie in user_booking.dates:
-         booking_info = {
-               'date': date_movie.date,  
-               'movies': []
-         }
-         
-         for movieid in user_booking.movies:
-            movie_info = getMovieInfo(movieid)
-            if movie_info:
-               booking_info['movies'].append(movie_info)
+               for movieid in movies_ids:
+                  movie_info = getMovieInfo(movieid)
+                  if movie_info:
+                     booking_info['movies'].append(movie_info)
 
-            else:
-               return make_response(jsonify({"error": f"Movie with ID {movieid} does not exist in the movies database"}), 404)
+                  #else:
+                     #return make_response(jsonify({"error": f"Movie with ID {movieid} does not exist in the movies database"}), 404)
 
-         movies_infos.append(booking_info)
+               movies_infos.append(booking_info)
+               
+         if movies_infos == [] :
+            return make_response(jsonify({"error": "This user does not have any bookings"}), 404)
+         return make_response(jsonify(movies_infos), 200)
 
-   return make_response(jsonify(list(movies_infos)), 200)
-
+      except grpc.RpcError as e:
+         return make_response(jsonify({"error": "Call to booking server failed"}), 508)
 
 if __name__ == "__main__":
    print("Server running in port %s"%(PORT))
