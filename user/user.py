@@ -9,8 +9,8 @@ import grpc
 from concurrent import futures
 import booking_pb2
 import booking_pb2_grpc
-import movie_pb2
-import movie_pb2_grpc
+#import movie_pb2
+#import movie_pb2_grpc
 
 # CALLING GraphQL requests
 # todo to complete
@@ -78,6 +78,7 @@ def get_booking_by_date_user(userid, date):
                      }), 200)
                return make_response(jsonify({"error": "There are no bookings on this date for this user"}), 409)
             except grpc.RpcError as e:
+                  print(e)
                   return make_response(jsonify({"error": "Call to booking server failed"}), 508)
    return make_response(jsonify({"error": "This user does not exist in the users database"}), 400)
 
