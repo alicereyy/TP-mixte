@@ -138,10 +138,6 @@ def get_movies_info_for_user_bookings(userid):
                   movie_info = getMovieInfo(movieid)
                   if movie_info:
                      booking_info['movies'].append(movie_info)
-
-                  #else:
-                     #return make_response(jsonify({"error": f"Movie with ID {movieid} does not exist in the movies database"}), 404)
-
                movies_infos.append(booking_info)
                
          if movies_infos == [] :
