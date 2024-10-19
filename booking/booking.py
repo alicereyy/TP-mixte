@@ -35,7 +35,6 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
             
             showtime_response = showtime_stub.GetMoviesOnDate(showtime_pb2.Date(date=request.dates[0].date))
             
-            
             existing_movies = [movie for movie in request.dates[0].movies if movie in showtime_response.movies]
             print (existing_movies)
             
@@ -67,65 +66,10 @@ def serve():
     server.add_insecure_port('[::]:3004')
     server.start()
     server.wait_for_termination()
-'''
-def run():
-    time.sleep(2)
-    with grpc.insecure_channel('localhost:3002') as booking_channel:
-        booking_stub = booking_pb2_grpc.BookingStub(booking_channel)
-        booking_request = booking_pb2.BookingInfo(
-            userid= "chris_rivers",
-            dates=[
-                booking_pb2.DateMovies(
-                    date="20151130",
-                    movies=["a8034f44-aee4-44cf-b32c-74cf452aaaae"]
-                )
-            ]
-        )
-        #print(booking_request)
-        # Apply the AddBookingForUser method 
-        response = booking_stub.AddBookingForUser(booking_request)
-        print("Response: ", response.message)
-'''
 
-def run():
-    # Delay to ensure server is up
-    time.sleep(2)
-    
-    with grpc.insecure_channel('localhost:3004') as booking_channel:
-        booking_stub = booking_pb2_grpc.BookingStub(booking_channel)
-        booking_request = booking_pb2.BookingInfo(
-            userid="chris_rivers",
-            dates=[
-                booking_pb2.DateMovies(
-                    date="20151130",
-                    movies=["a8034f44-aee4-44cf-b32c-74cf452aaaae"]
-                )
-            ]
-        )
-       
-        print("Booking Request: ", booking_request)
-        # Apply the AddBookingForUser method 
-        response = booking_stub.AddBookingForUser(booking_request)
-        print("-------------- AddBookingForUser --------------")
-        print("Response: ", response.message)
         
 if __name__ == '__main__':
-    # Start the server in a separate process
-    server_process = Process(target=serve)
-    server_process.start()
-
-    # Run the client
-    run()
-
-    # Stop the server process after test
-    server_process.terminate()
-    server_process.join()
-    
-'''               
-if __name__ == '__main__':
-    server_thread = threading.Thread(target=serve)
-    server_thread.start()
     serve()
-    run()
-''' 
+
+
     
