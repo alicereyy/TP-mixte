@@ -59,7 +59,7 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     booking_pb2_grpc.add_BookingServicer_to_server(BookingServicer(), server)
-    server.add_insecure_port('[::]:3002')
+    server.add_insecure_port('[::]:3004')
     server.start()
     server.wait_for_termination()
 
