@@ -11,6 +11,12 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
     def __init__(self):
         with open('{}/data/bookings.json'.format("."), "r") as jsf:
             self.db = json.load(jsf)["bookings"]
+    
+    def write(self, bookings):
+        print("trying to write")
+        with open('{}/data/bookings.json'.format("."), 'w') as f:
+            json.dump({"bookings": bookings}, f)
+
     def GetAllBookings(self, request,context):
         for booking in self.db:
             yield booking_pb2.BookingInfo(userid=booking['userid'], dates=[booking_pb2.DateMovies(date=date['date'], movies = date['movies']) for date in booking['dates']])
@@ -28,32 +34,32 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
         with grpc.insecure_channel ('localhost:3003') as channel:
             
             showtime_stub = showtime_pb2_grpc.ShowtimeStub(channel)
-            
-            showtime_response = showtime_stub.GetMoviesOnDate(showtime_pb2.Date(date=request.dates[0].date))
-            
-            existing_movies = [movie for movie in request.dates[0].movies if movie in showtime_response.movies]
-            print (existing_movies)
-            
-            if not existing_movies:
-                return booking_pb2.ResponseMessage(message="There are no movies on this date.")
-            
+
+            showtime_response = showtime_stub.GetMoviesOnDate(showtime_pb2.Date(date=request.date))
+
+            # if the movie is not programmed on this date
+            if not request.movieid in showtime_response.movies :
+                return booking_pb2.ResponseMessage(message="This movie does not exist on this date")
+        
         for booking in self.db:
             if booking['userid'] == request.userid:
                 # if the user exists, check if the date exists
                 for date_movie in booking['dates']:
-                    if date_movie['date'] == request.dates[0].date:
-                        #print (f'HHHHHHHHHHHHH {date_movie['date']}')
-                        # add the new movies to the corresponding movie date
-                        date_movie['movies'].extend(request.dates[0].movies)
-                        return booking_pb2.ResponseMessage(message="Movies added to existing date for this user")
-                
+                    if date_movie['date'] == request.date:
+                        if not request.movieid in date_movie['movies']:
+                            # add the new movie to the corresponding movie date
+                            date_movie['movies'].append(request.movieid)
+                            self.write(self.db)
+                            return booking_pb2.ResponseMessage(message="Booking added for this user")
+                        else:
+                            return booking_pb2.ResponseMessage(message="Booking already exists for this user")
                 # If the date does not exist, add the whole booking
                 booking['dates'].append({
-                    'date': request.dates[0].date,
-                    'movies': request.dates[0].movies
+                    'date': request.date,
+                    'movies': [request.movieid]
                 })
-                return booking_pb2.ResponseMessage(message="Booking added for this user.")
-        return booking_pb2.ResponseMessage(message="Booking already exists for this user")
+                self.write(self.db)
+                return booking_pb2.ResponseMessage(message="Booking added for this user")        
 
 
 def serve():

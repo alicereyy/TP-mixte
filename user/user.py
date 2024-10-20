@@ -105,7 +105,7 @@ def getMovieInfo(movieid) :
     '''.replace("{movieid}", movieid)
     
    response = requests.post(
-      'http://127.0.0.1:3001/graphql',
+      'http://192.168.1.70:3001/graphql',
       json={'query': query}  # Send the query
    )
    
@@ -141,6 +141,31 @@ def get_movies_info_for_user_bookings(userid):
       return make_response(jsonify({"error": "This user does not have any bookings"}), 404)
 
    return make_response(jsonify({"error": "Call to booking server failed"}), 508)
+
+
+#Add a booking to a user
+@app.route("/users/add_booking/<userid>", methods=['POST'])
+def add_booking_for_user(userid):
+    # request : date and movieid
+    req = request.get_json()
+
+    with grpc.insecure_channel('localhost:3004') as channel:
+        print(1)
+        stub = booking_pb2_grpc.BookingStub(channel)
+        print(2)
+        booking_request = booking_pb2.NewBooking(userid=userid, date=req["date"], movieid=req["movieid"])
+        print(3)
+        try:
+            response = stub.AddBookingForUser(booking_request)
+            if response.message == "Booking added for this user":
+                return make_response(jsonify({"message":response.message}), 200)
+            else:
+                return make_response(jsonify({"message":response.message}), 400)
+
+        except grpc.RpcError as e:
+            return make_response(jsonify({"error": "Call to booking server failed"}), 508)
+
+
 
 if __name__ == "__main__":
    print("Server running in port %s"%(PORT))
