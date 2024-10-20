@@ -21,6 +21,14 @@ class ShowtimeServicer(showtime_pb2_grpc.ShowtimeServicer):
                 return showtime_pb2.Schedule(date=schedule['date'], movies=schedule['movies'])
         print("No movies on this date")
         return showtime_pb2.Schedule(date=request.date, movies=[])
+    
+    def GetDatesForMovie(self, request, context):
+        dates = []
+        for schedule in self.db:
+            if request.id in schedule['movies']:
+                dates.append(schedule['date'])
+        return showtime_pb2.Dates(dates=dates)
+
 
 
 def serve():

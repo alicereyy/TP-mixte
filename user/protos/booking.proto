@@ -6,10 +6,19 @@ service Booking {
   rpc AddBookingForUser(BookingUser) returns (ResponseMessage) {}
   rpc DeleteBookingForUser(BookingUser) returns (ResponseMessage) {}
   rpc GetMoviesOnDate(BookingDate) returns (DateMovies) {}
+  rpc GetDatesForMovie(Movie) returns (BookingDates) {}
 }
 
 message UserId {
     string id = 1;
+}
+
+message Movie {
+  string id = 1;
+}
+
+message BookingDates {
+  repeated string dates = 1;
 }
 
 message BookingDate {

@@ -95,7 +95,11 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
             showtime_response = showtime_stub.GetMoviesOnDate(showtime_pb2.Date(date=request.date))
             return booking_pb2.DateMovies(date=showtime_response.date, movies=showtime_response.movies)
             
-        
+    def GetDatesForMovie(self, request, context):
+        with grpc.insecure_channel ('localhost:3003') as channel:    
+            showtime_stub = showtime_pb2_grpc.ShowtimeStub(channel)
+            showtime_response = showtime_stub.GetDatesForMovie(showtime_pb2.MovieId(id=request.id))
+            return booking_pb2.BookingDates(dates=showtime_response.dates)    
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

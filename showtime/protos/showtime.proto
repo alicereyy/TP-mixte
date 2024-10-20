@@ -3,6 +3,7 @@ syntax = "proto3";
 service Showtime {
     rpc GetSchedule(Empty) returns (stream Schedule) {}
     rpc GetMoviesOnDate(Date) returns (Schedule) {}
+    rpc GetDatesForMovie(MovieId) returns (Dates) {}
 }
 
 message Schedule {
@@ -12,6 +13,14 @@ message Schedule {
 
 message Date {
     string date = 1;
+}
+
+message Dates {
+    repeated string dates = 1;
+}
+
+message MovieId {
+    string id = 1;
 }
 
 message Empty {

@@ -209,7 +209,57 @@ def get_movies_on_date(date):
         except grpc.RpcError as e:
             return make_response(jsonify({"error": "Call to booking server failed"}), 508)
 
+
+def get_id_with_title(title):
+   query = '''
+   {
+     movie_with_title(_title: "{title}") {
+       id
+     }
+   }
+   '''.replace("{title}", title)
     
+   response = requests.post(
+      'http://10.6.73.83:3001/graphql',
+      json={'query': query}  # Send the query
+   )
+
+   if response.status_code == 200:
+      return response.json()['data']['movie_with_title']
+   else:
+      return None
+
+#Get dates from movie title
+@app.route("/users/schedule/title", methods=['POST'])  
+def get_dates_with_title():
+   # request : movie title
+   req = request.get_json()
+
+   movie_response = get_id_with_title(req['title'])
+   if not movie_response:
+      return make_response(jsonify({"message": "Movie title not in database"}), 400)
+       
+   movieid = movie_response['id']
+
+   with grpc.insecure_channel('localhost:3004') as channel:
+      stub = booking_pb2_grpc.BookingStub(channel)
+      booking_request = booking_pb2.Movie(id=movieid)
+
+      try:
+         response = stub.GetDatesForMovie(booking_request)
+
+         if len(response.dates) == 0: # if no date were found
+            return make_response(jsonify({"message":"No date for this movie"}), 400)
+         
+         movie_dates = {
+                "movie": movieid,
+                "dates": list(response.dates)
+            }
+         return make_response(jsonify(movie_dates), 200)
+ 
+      except grpc.RpcError as e:
+         return make_response(jsonify({"error": "Call to booking server failed"}), 508)
+
 
 
 if __name__ == "__main__":

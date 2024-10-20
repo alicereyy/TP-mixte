@@ -59,6 +59,11 @@ class BookingStub(object):
                 request_serializer=booking__pb2.BookingDate.SerializeToString,
                 response_deserializer=booking__pb2.DateMovies.FromString,
                 _registered_method=True)
+        self.GetDatesForMovie = channel.unary_unary(
+                '/Booking/GetDatesForMovie',
+                request_serializer=booking__pb2.Movie.SerializeToString,
+                response_deserializer=booking__pb2.BookingDates.FromString,
+                _registered_method=True)
 
 
 class BookingServicer(object):
@@ -94,6 +99,12 @@ class BookingServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetDatesForMovie(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_BookingServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -121,6 +132,11 @@ def add_BookingServicer_to_server(servicer, server):
                     servicer.GetMoviesOnDate,
                     request_deserializer=booking__pb2.BookingDate.FromString,
                     response_serializer=booking__pb2.DateMovies.SerializeToString,
+            ),
+            'GetDatesForMovie': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetDatesForMovie,
+                    request_deserializer=booking__pb2.Movie.FromString,
+                    response_serializer=booking__pb2.BookingDates.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -258,6 +274,33 @@ class Booking(object):
             '/Booking/GetMoviesOnDate',
             booking__pb2.BookingDate.SerializeToString,
             booking__pb2.DateMovies.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetDatesForMovie(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/Booking/GetDatesForMovie',
+            booking__pb2.Movie.SerializeToString,
+            booking__pb2.BookingDates.FromString,
             options,
             channel_credentials,
             insecure,
