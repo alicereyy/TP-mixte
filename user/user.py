@@ -105,7 +105,7 @@ def getMovieInfo(movieid) :
     '''.replace("{movieid}", movieid)
     
    response = requests.post(
-      'http://192.168.1.70:3001/graphql',
+      'http://10.6.73.83:3001/graphql',
       json={'query': query}  # Send the query
    )
    
@@ -183,7 +183,33 @@ def delete_booking_for_user(userid):
             return make_response(jsonify({"error": "Call to booking server failed"}), 508)
 
 
+#Get available movies on date, with movie information
+@app.route("/users/movies/<date>", methods=['GET'])
+def get_movies_on_date(date):
+    with grpc.insecure_channel('localhost:3004') as channel:
+        stub = booking_pb2_grpc.BookingStub(channel)
+        booking_request = booking_pb2.BookingDate(date=date)
+        try:
+            response = stub.GetMoviesOnDate(booking_request)
 
+            if response.movies == []: # if no movies on this date
+               return make_response(jsonify({"message":"No movies on this date"}), 400)
+            
+            # collect all movies information on this date
+            movie_info = []
+            for movieid in response.movies:
+               movie_info.append(getMovieInfo(movieid))
+            
+            date_movies = {
+                "date": date,
+                "movies": movie_info
+            }
+            return make_response(jsonify(date_movies), 200)
+
+        except grpc.RpcError as e:
+            return make_response(jsonify({"error": "Call to booking server failed"}), 508)
+
+    
 
 
 if __name__ == "__main__":

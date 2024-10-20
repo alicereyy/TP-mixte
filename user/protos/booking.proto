@@ -5,10 +5,15 @@ service Booking {
   rpc GetBookingsForUser(UserId) returns (stream BookingsForUser) {}
   rpc AddBookingForUser(BookingUser) returns (ResponseMessage) {}
   rpc DeleteBookingForUser(BookingUser) returns (ResponseMessage) {}
+  rpc GetMoviesOnDate(BookingDate) returns (DateMovies) {}
 }
 
 message UserId {
     string id = 1;
+}
+
+message BookingDate {
+  string date = 1;
 }
 
 message ResponseMessage {

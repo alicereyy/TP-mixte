@@ -34,7 +34,6 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
         with grpc.insecure_channel ('localhost:3003') as channel:
             
             showtime_stub = showtime_pb2_grpc.ShowtimeStub(channel)
-
             showtime_response = showtime_stub.GetMoviesOnDate(showtime_pb2.Date(date=request.date))
 
             # if the movie is not programmed on this date
@@ -90,6 +89,12 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
         # if the user is not found
         return booking_pb2.ResponseMessage(message="This user does not exist in the database")    
     
+    def GetMoviesOnDate(self, request, context):
+        with grpc.insecure_channel ('localhost:3003') as channel:    
+            showtime_stub = showtime_pb2_grpc.ShowtimeStub(channel)
+            showtime_response = showtime_stub.GetMoviesOnDate(showtime_pb2.Date(date=request.date))
+            return booking_pb2.DateMovies(date=showtime_response.date, movies=showtime_response.movies)
+            
         
 
 def serve():
