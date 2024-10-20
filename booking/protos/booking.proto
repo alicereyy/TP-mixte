@@ -3,7 +3,7 @@ syntax = "proto3";
 service Booking {
   rpc GetAllBookings(OtherEmpty) returns (stream Bookings) {}
   rpc GetBookingsForUser(UserId) returns (stream BookingsForUser) {}
-  rpc AddBookingForUser(BookingInfo) returns (ResponseMessage) {}
+  rpc AddBookingForUser(NewBooking) returns (ResponseMessage) {}
 }
 
 message UserId {
@@ -12,6 +12,12 @@ message UserId {
 
 message ResponseMessage {
   string message = 1;
+}
+
+message NewBooking {
+  string userid = 1;
+  string date = 2;
+  string movieid = 3;
 }
 
 message Bookings {
