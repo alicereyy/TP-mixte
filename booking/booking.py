@@ -59,8 +59,38 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
                     'movies': [request.movieid]
                 })
                 self.write(self.db)
-                return booking_pb2.ResponseMessage(message="Booking added for this user")        
+                return booking_pb2.ResponseMessage(message="Booking added for this user")       
 
+        # if the user is not found   
+        return booking_pb2.ResponseMessage(message="This user does not exist in the database")       
+
+    def DeleteBookingForUser(self, request, context):
+        for booking in self.db:
+            if booking['userid'] == request.userid: # find the user
+                for date_movie in booking['dates']: 
+                    if date_movie['date'] == request.date: # find the date
+                        try:
+                            date_movie['movies'].remove(request.movieid)
+
+                            # # if no more bookings on this date for this user
+                            # if date_movie['movies'] == []:
+                            #     booking['date'].remove(
+                            #         {
+                            #             "date": request.date,
+                            #             "movies": []
+                            #         }
+                            #     )
+                            self.write(self.db)
+                            return booking_pb2.ResponseMessage(message="Booking deleted for this user")
+                        except:
+                            return booking_pb2.ResponseMessage(message="Booking does not exist for this user")
+                # if the date is not found in the user bookings
+                return booking_pb2.ResponseMessage(message="Booking does not exist for this user")
+        
+        # if the user is not found
+        return booking_pb2.ResponseMessage(message="This user does not exist in the database")    
+    
+        
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

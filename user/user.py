@@ -150,11 +150,8 @@ def add_booking_for_user(userid):
     req = request.get_json()
 
     with grpc.insecure_channel('localhost:3004') as channel:
-        print(1)
         stub = booking_pb2_grpc.BookingStub(channel)
-        print(2)
-        booking_request = booking_pb2.NewBooking(userid=userid, date=req["date"], movieid=req["movieid"])
-        print(3)
+        booking_request = booking_pb2.BookingUser(userid=userid, date=req["date"], movieid=req["movieid"])
         try:
             response = stub.AddBookingForUser(booking_request)
             if response.message == "Booking added for this user":
@@ -164,6 +161,28 @@ def add_booking_for_user(userid):
 
         except grpc.RpcError as e:
             return make_response(jsonify({"error": "Call to booking server failed"}), 508)
+
+
+#Delete a booking for a user
+@app.route("/users/delete_booking/<userid>", methods=['POST'])
+def delete_booking_for_user(userid):
+    # request : date and movieid
+    req = request.get_json()
+
+    with grpc.insecure_channel('localhost:3004') as channel:
+        stub = booking_pb2_grpc.BookingStub(channel)
+        booking_request = booking_pb2.BookingUser(userid=userid, date=req["date"], movieid=req["movieid"])
+        try:
+            response = stub.DeleteBookingForUser(booking_request)
+            if response.message == "Booking deleted for this user":
+                return make_response(jsonify({"message":response.message}), 200)
+            else:
+                return make_response(jsonify({"message":response.message}), 400)
+
+        except grpc.RpcError as e:
+            return make_response(jsonify({"error": "Call to booking server failed"}), 508)
+
+
 
 
 
