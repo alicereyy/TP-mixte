@@ -12,8 +12,6 @@ import booking_pb2_grpc
 #import movie_pb2
 #import movie_pb2_grpc
 
-# CALLING GraphQL requests
-# todo to complete
 
 app = Flask(__name__)
 
@@ -32,7 +30,8 @@ def get_json():
    res = make_response(jsonify(users), 200)
    return res
 
-# A separate function to be reused not to access the booking server each time
+# A separate function to be reused in order to avoid accessing the booking server and extracting the same 
+# information (the bookings of the user) each time
 def get_user_bookings(userid):
     with grpc.insecure_channel('localhost:3004') as channel:
         stub = booking_pb2_grpc.BookingStub(channel)
@@ -49,6 +48,14 @@ def get_user_bookings(userid):
             return user_bookings
         except grpc.RpcError as e:
             return None
+
+# A separate function to be reused to add or remove the booking chosen by the user 
+def get_user_booking_to_add_or_delete(userid):
+   req = request.get_json()
+   with grpc.insecure_channel('localhost:3004') as channel:
+      stub = booking_pb2_grpc.BookingStub(channel)
+      booking_request = booking_pb2.BookingUser(userid=userid, date=req["date"], movieid=req["movieid"])
+   return stub, booking_request
 
 # Returns all the booked movies of a user 
 @app.route("/users/<userid>", methods = ['GET'])
@@ -83,23 +90,23 @@ def get_booking_by_date_user(userid, date):
 
    return make_response(jsonify({"error": "This user does not exist in the users database"}), 400)
 
-
+# GraphQL Query for a user 
 def getMovieInfo(movieid) :
    
     
    query = '''
     {
       movie_with_id(_id: "{movieid}") {
-        id
-        title
-        director
-        rating
-        actors {
-          id
-          firstname
-          lastname
-          birthyear
-        }
+         id
+         title
+         director
+         rating
+         actors {
+            id
+            firstname
+            lastname
+            birthyear
+         }
       }
     }
     '''.replace("{movieid}", movieid)
@@ -108,8 +115,6 @@ def getMovieInfo(movieid) :
       'http://192.168.1.70:3001/graphql',
       json={'query': query}  # Send the query
    )
-   
-   #print(f'HHHHHH {response}')  # just for debugging
    
    if response.status_code == 200:
       return response.json()['data']['movie_with_id']
@@ -164,7 +169,7 @@ def add_booking_for_user(userid):
 
 
 #Delete a booking for a user
-@app.route("/users/delete_booking/<userid>", methods=['POST'])
+@app.route("/users/delete_booking/<userid>", methods=['DELETE'])
 def delete_booking_for_user(userid):
     # request : date and movieid
     req = request.get_json()
