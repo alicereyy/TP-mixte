@@ -18,7 +18,7 @@ C'est le micro-service qui sert de point d’entrée à tout utilisateur et qui 
 
 ## Lancer l'application
 - télécharger le projet
-- activer l'environnement virtuel (ou installer les requirements avec $pip install -r requirements.txt$)
+- activer l'environnement virtuel (ou installer les requirements avec 'pip install -r requirements.txt')
 - avec Python, run en parallèle les fichiers user.py, booking.py, showtimes.py et movie.py qui se trouvent respectivement dans les dossiers user, booking, showtime et movie
 
 Il est possible de tester l'application avec Postman ou équivalent. 
