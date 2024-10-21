@@ -16,9 +16,21 @@ C'est le micro-service responsable de la réservation des films par les utilisat
 C'est le micro-service qui sert de point d’entrée à tout utilisateur et qui permet ensuite de récupérer des informations sur les films, sur les créneaux disponibles et de réserver. Il contient et gère une petite base de données json avec la liste des utilisateurs. User fait appel à Booking et Movie pour respectivement permettre aux utilisateurs de réserver un film ou d’obtenir des informations sur les films.
 
 
+## Fonctionnalités 
+Le point d'entrée utilisateur est le micro-service User. Les fonctionnalités disponibles dans le service User sont:
+- get all users (no parameter)
+- get booked movies for a user (parameter in url: user id)
+- get booked movies for a user with movie information (parameter in url: user id)
+- get booked movies of a user on the chosen date (parameters in url: user id, date)
+- add a booking to a user (parameter in url: user id) (json request: date, movie id)
+- delete a booking for a user (parameter in url: user id) (json request: date, movie id)
+- get available movies on date, with movie information (parameter in url: date)
+- get dates from movie title (json request: movie title)
+
+
 ## Lancer l'application
 - télécharger le projet
 - activer l'environnement virtuel (ou installer les requirements avec 'pip install -r requirements.txt')
 - avec Python, run en parallèle les fichiers user.py, booking.py, showtimes.py et movie.py qui se trouvent respectivement dans les dossiers user, booking, showtime et movie
 
-Il est possible de tester l'application avec Postman ou équivalent. 
+Il est possible de tester l'application avec Postman ou équivalent. Le point d'entrée utilisateur est le micro-service User. Pour tester ses fonctionnalités, faire des requètes http avec l'url du serveur local et les routes spécifiées dans le fichier user.py.
