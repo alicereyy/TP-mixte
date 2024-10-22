@@ -7,7 +7,7 @@ PORT = 3001
 HOST = '0.0.0.0'
 app = Flask(__name__)
 
-# todo create elements for Ariadne
+# create elements for Ariadne
 type_defs = load_schema_from_path('movie.graphql')
 
 query = QueryType()
@@ -18,6 +18,7 @@ query.set_field('movie_with_director', r.movie_with_director)
 movie = ObjectType('Movie')
 movie.set_field('actors', r.resolve_actors_in_movie)
 
+# Create mutation types
 mutation = MutationType()
 mutation.set_field('update_movie_rate', r.update_movie_rate)
 mutation.set_field('add_movie', r.add_movie)
