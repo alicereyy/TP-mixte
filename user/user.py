@@ -39,7 +39,7 @@ def write(users):
             
 # A separate function to be reused not to access the booking server each time
 def get_user_bookings(userid):
-   
+   #This user last active should be updated after doing this request 
    update_last_active(userid)
    
    with grpc.insecure_channel('localhost:3004') as channel:
@@ -52,6 +52,7 @@ def get_user_bookings(userid):
                for date_movie in booking.dates:
                   user_bookings.append({
                      'date': date_movie.date,
+                     # We used list so that we can iterate the movies 
                      'movies': list(date_movie.movies)
                   })
          return user_bookings
@@ -61,6 +62,7 @@ def get_user_bookings(userid):
 # Returns all the booked movies of a user 
 @app.route("/users/<userid>", methods = ['GET'])
 def get_booking_for_userid(userid):
+   
    update_last_active(userid)
    for user in users:
       if str(user["id"]) == str(userid):
@@ -87,6 +89,7 @@ def get_booking_by_date_user(userid, date):
          user_bookings = get_user_bookings(userid)
          if user_bookings is not None:
                for booking in user_bookings:
+                  # Select the bookings that are booked on the chosen date if they exist
                   if str(booking['date']) == str(date):
                      return make_response(jsonify(booking), 200)
                return make_response(jsonify({"error": "There are no bookings on this date for this user"}), 409)
@@ -95,35 +98,31 @@ def get_booking_by_date_user(userid, date):
 
    return make_response(jsonify({"error": "This user does not exist in the users database"}), 400)
 
-
+# Movie information requested from the movie service to be displayed for the user 
 def getMovieInfo(movieid) :
-   
-    
+
    query = '''
-    {
+      {
       movie_with_id(_id: "{movieid}") {
-        id
-        title
-        director
-        rating
-        actors {
-          id
-          firstname
-          lastname
-          birthyear
-        }
+         id
+         title
+         director
+         rating
+         actors {
+         id
+         firstname
+         lastname
+         birthyear
+         }
       }
-    }
+      }
     '''.replace("{movieid}", movieid)
     
    response = requests.post(
       #'http://10.6.73.83:3001/graphql',
       'http://127.0.0.1:3001/graphql',
-      json={'query': query}  # Send the query
+      json={'query': query}  
    )
-   
-   #print(f'HHHHHH {response}')  # just for debugging
-   
    if response.status_code == 200:
       return response.json()['data']['movie_with_id']
    else:
@@ -209,8 +208,8 @@ def get_movies_on_date(date):
       booking_request = booking_pb2.BookingDate(date=date)
       try:
          response = stub.GetMoviesOnDate(booking_request)
-
-         if response.movies == []: # if no movies on this date
+         # If there are no movies booked on this date 
+         if response.movies == []: 
             return make_response(jsonify({"message":"No movies on this date"}), 400)
          
          # collect all movies information on this date
@@ -281,7 +280,7 @@ def get_dates_with_title():
          return make_response(jsonify({"error": "Call to booking server failed"}), 508)
 
 # A method to update the last active date for a user: the Unix time will be updated whenever the user 
-# accesses one of the previous services 
+# does one of the previous requests
 def update_last_active(userid):
    current_time = int(time.time())  
    

@@ -4,6 +4,7 @@ import showtime_pb2
 import showtime_pb2_grpc
 import json
 
+# Showtime is a server to booking 
 class ShowtimeServicer(showtime_pb2_grpc.ShowtimeServicer):
 
     def __init__(self):
@@ -13,7 +14,8 @@ class ShowtimeServicer(showtime_pb2_grpc.ShowtimeServicer):
     def GetSchedule(self, request, context):
         for schedule in self.db:
             yield showtime_pb2.Schedule(date=schedule['date'], movies=schedule['movies'])
-    
+            
+    # This function will be used in user to let the user know the available movies to watch on a chosen date 
     def GetMoviesOnDate(self, request, context):
         for schedule in self.db:
             if schedule['date'] == request.date:
@@ -21,7 +23,7 @@ class ShowtimeServicer(showtime_pb2_grpc.ShowtimeServicer):
                 return showtime_pb2.Schedule(date=schedule['date'], movies=schedule['movies'])
         print("No movies on this date")
         return showtime_pb2.Schedule(date=request.date, movies=[])
-    
+    # This function will be used in user to let the user know the available dates to watch a movie 
     def GetDatesForMovie(self, request, context):
         dates = []
         for schedule in self.db:
