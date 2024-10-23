@@ -29,8 +29,8 @@ class ShowtimeServicer(showtime_pb2_grpc.ShowtimeServicer):
         for schedule in self.db:
             if request.id in schedule['movies']:
                 dates.append(schedule['date'])
+                print('Hi')
         return showtime_pb2.Dates(dates=dates)
-
 
 
 def serve():

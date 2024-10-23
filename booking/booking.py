@@ -17,7 +17,7 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
         with open('{}/data/bookings.json'.format("."), 'w') as f:
             json.dump({"bookings": bookings}, f)
 
-    def GetAllBookings(self, request,context):
+    def GetAllBookings(self, request, context):
         for booking in self.db:
             yield booking_pb2.BookingInfo(userid=booking['userid'], dates=[booking_pb2.DateMovies(date=date['date'], movies = date['movies']) for date in booking['dates']])
         
@@ -34,6 +34,7 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
         with grpc.insecure_channel ('localhost:3003') as channel:
             
             showtime_stub = showtime_pb2_grpc.ShowtimeStub(channel)
+
             showtime_response = showtime_stub.GetMoviesOnDate(showtime_pb2.Date(date=request.date))
 
             # if the movie is not programmed on this date
@@ -70,15 +71,6 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
                     if date_movie['date'] == request.date: # find the date
                         try:
                             date_movie['movies'].remove(request.movieid)
-
-                            # # if no more bookings on this date for this user
-                            # if date_movie['movies'] == []:
-                            #     booking['date'].remove(
-                            #         {
-                            #             "date": request.date,
-                            #             "movies": []
-                            #         }
-                            #     )
                             self.write(self.db)
                             return booking_pb2.ResponseMessage(message="Booking deleted for this user")
                         except:
@@ -99,7 +91,7 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
         with grpc.insecure_channel ('localhost:3003') as channel:    
             showtime_stub = showtime_pb2_grpc.ShowtimeStub(channel)
             showtime_response = showtime_stub.GetDatesForMovie(showtime_pb2.MovieId(id=request.id))
-            return booking_pb2.BookingDates(dates=showtime_response.dates)    
+            return booking_pb2.BookingDates(dates=showtime_response.dates)        
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

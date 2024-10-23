@@ -224,7 +224,9 @@ def get_movies_on_date(date):
          return make_response(jsonify(date_movies), 200)
 
       except grpc.RpcError as e:
+         print(f"gRPC error: {e.details()}, code: {e.code()}")
          return make_response(jsonify({"error": "Call to booking server failed"}), 508)
+
 
 
 def get_id_with_title(title):
@@ -248,7 +250,7 @@ def get_id_with_title(title):
    else:
       return None
 
-#Get the dates that can be booked for the chosen movie 
+#Get the dates for the chosen movie 
 @app.route("/users/schedule/title", methods=['GET'])  
 def get_dates_with_title():
    # request : movie title
@@ -271,12 +273,13 @@ def get_dates_with_title():
             return make_response(jsonify({"message":"No date for this movie"}), 400)
          
          movie_dates = {
-                "movie": movieid,
-                "dates": list(response.dates)
+                  "movie": movieid,
+                  "dates": list(response.dates)
             }
          return make_response(jsonify(movie_dates), 200)
  
       except grpc.RpcError as e:
+         print(f"gRPC error: {e.details()}, code: {e.code()}")
          return make_response(jsonify({"error": "Call to booking server failed"}), 508)
 
 # A method to update the last active date for a user: the Unix time will be updated whenever the user 

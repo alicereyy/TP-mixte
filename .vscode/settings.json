@@ -1,0 +1,5 @@
+{
+  "python.analysis.extraPaths": [
+    "./user/booking_pb2_"
+  ]
+}
